@@ -10,7 +10,7 @@ import {
   downloadSegmentsAsJSON,
   downloadSegment,
   downloadAllSegmentsAsZip,
-} from './utils/mockProcessor'; // keep the file name same
+} from './utils/mockProcessor';
 
 function App() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -28,22 +28,31 @@ function App() {
     try {
       const result = await processAudioFile(file);
       setSegments(result.segments);
-      setAudioUrl(result.audioUrl);
-      setFileId(result.fileId); // save backend fileId
+      setAudioUrl(result.audioUrl); // corrected to include backend audio URL
+      setFileId(result.fileId);
       setShowResults(true);
     } catch (error) {
       console.error('Error processing file:', error);
+      alert('Failed to process audio file. Please try again.');
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleDownloadSegment = async (segment: Segment) => {
-    await downloadSegment(segment, fileId); // use backend fileId
+    try {
+      await downloadSegment(segment, fileId);
+    } catch (error) {
+      console.error(`Error downloading segment ${segment.name}:`, error);
+    }
   };
 
   const handleDownloadAll = async () => {
-    await downloadAllSegmentsAsZip(segments, fileId, fileName); // use backend fileId
+    try {
+      await downloadAllSegmentsAsZip(segments, fileId, fileName);
+    } catch (error) {
+      console.error('Error downloading all segments:', error);
+    }
   };
 
   const handleDownloadJSON = () => {
