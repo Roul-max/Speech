@@ -3,7 +3,10 @@ import JSZip from 'jszip';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sbc-k2ap.onrender.com';
 
-export async function processAudioFile(file: File): Promise<{ segments: Segment[]; fileId: string }> {
+/**
+ * Upload audio file and get segments from backend
+ */
+export async function processAudioFile(file: File): Promise<{ segments: Segment[]; fileId: string; audioUrl: string }> {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -18,9 +21,12 @@ export async function processAudioFile(file: File): Promise<{ segments: Segment[
   }
 
   const data = await res.json();
-  return { segments: data.segments, fileId: data.file_id };
+  return { segments: data.segments, fileId: data.file_id, audioUrl: `${API_URL}${data.audioUrl}` };
 }
 
+/**
+ * Download a single segment from backend
+ */
 export async function downloadSegment(segment: Segment, fileId: string) {
   const res = await fetch(`${API_URL}/api/extract-segment`, {
     method: 'POST',
@@ -49,6 +55,9 @@ export async function downloadSegment(segment: Segment, fileId: string) {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Download all segments as a ZIP along with a JSON timestamp file
+ */
 export async function downloadAllSegmentsAsZip(segments: Segment[], fileId: string, fileName: string) {
   const zip = new JSZip();
 
@@ -73,6 +82,7 @@ export async function downloadAllSegmentsAsZip(segments: Segment[], fileId: stri
     zip.file(`${segment.name || `segment_${segment.id}`}.mp3`, blob);
   }
 
+  // Add JSON timestamps
   zip.file(`${fileName}_timestamps.json`, JSON.stringify(segments, null, 2));
 
   const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -86,6 +96,9 @@ export async function downloadAllSegmentsAsZip(segments: Segment[], fileId: stri
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Download segments as JSON only
+ */
 export function downloadSegmentsAsJSON(segments: Segment[], fileName: string) {
   const json = JSON.stringify(segments, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
