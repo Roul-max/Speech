@@ -7,15 +7,16 @@ import WaveformViewer from './components/WaveformViewer';
 import type { Segment } from './types/segment';
 import {
   processAudioFile,
-  downloadSegmentAsJSON,
+  downloadSegmentsAsJSON,
   downloadSegment,
   downloadAllSegmentsAsZip,
-} from './utils/mockProcessor';
+} from './utils/mockProcessor'; // keep the file name same
 
 function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [segments, setSegments] = useState<Segment[]>([]);
-  const [audioUrl, setAudioUrl] = useState<string>('');
+  const [audioUrl, setAudioUrl] = useState<string>(''); // for waveform preview
+  const [fileId, setFileId] = useState<string>(''); // backend fileId
   const [fileName, setFileName] = useState<string>('');
   const [showResults, setShowResults] = useState(false);
 
@@ -28,6 +29,7 @@ function App() {
       const result = await processAudioFile(file);
       setSegments(result.segments);
       setAudioUrl(result.audioUrl);
+      setFileId(result.fileId); // save backend fileId
       setShowResults(true);
     } catch (error) {
       console.error('Error processing file:', error);
@@ -37,15 +39,15 @@ function App() {
   };
 
   const handleDownloadSegment = async (segment: Segment) => {
-    await downloadSegment(segment, audioUrl);
+    await downloadSegment(segment, fileId); // use backend fileId
   };
 
   const handleDownloadAll = async () => {
-    await downloadAllSegmentsAsZip(segments, audioUrl, fileName);
+    await downloadAllSegmentsAsZip(segments, fileId, fileName); // use backend fileId
   };
 
   const handleDownloadJSON = () => {
-    downloadSegmentAsJSON(segments, fileName);
+    downloadSegmentsAsJSON(segments, fileName);
   };
 
   const handleRenameSegment = (id: string, newName: string) => {
@@ -73,7 +75,7 @@ function App() {
                 onRenameSegment={handleRenameSegment}
               />
 
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-4">
                 <button
                   onClick={handleDownloadJSON}
                   className="px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors shadow-sm"
