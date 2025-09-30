@@ -18,7 +18,6 @@ export async function processAudioFile(file: File): Promise<{ segments: Segment[
   }
 
   const data = await res.json();
-  // data contains segments array and file_id from backend
   return { segments: data.segments, fileId: data.file_id };
 }
 
@@ -74,9 +73,7 @@ export async function downloadAllSegmentsAsZip(segments: Segment[], fileId: stri
     zip.file(`${segment.name || `segment_${segment.id}`}.mp3`, blob);
   }
 
-  // Add JSON timestamps
-  const jsonContent = JSON.stringify(segments, null, 2);
-  zip.file(`${fileName}_timestamps.json`, jsonContent);
+  zip.file(`${fileName}_timestamps.json`, JSON.stringify(segments, null, 2));
 
   const zipBlob = await zip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(zipBlob);
